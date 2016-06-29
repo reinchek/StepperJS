@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Stepper Demo Usage</title>
+
+    <script src="stepperjs-v0.1.js"></script>
+
+    <script type="text/javascript">
+      window.onload = function() {
+        var myStepper = new Stepper('myStepper');
+        myStepper.rewindable(true);
+
+        myStepper
+          .step('step1', function() { console.log('step1'); })
+          .step('step2', function() { console.log('step2'); })
+          .step('step3', function() { console.log('step3'); })
+          .step('step4', function() { console.log('step4'); });
+
+        var newNext = document.createElement('div');
+        newNext.dataset['stexNext'] = '';
+        newNext.innerHTML = 'Avanti Ajax';
+
+        document.querySelector('[data-stex="myStepper"]').appendChild(newNext);
+        var allStexTriggers = document.querySelectorAll('[data-stex-next], [data-stex-prev], [data-stex-goto]');
+
+        myStepper.rebindEvents('all', allStexTriggers);
+
+      }
+    </script>
+  </head>
+  <body>
+    <div data-stex="myStepper">
+      <!-- <div data-stex-next data-stex-trigger="hover"> Vai avanti </div> -->
+      <div data-stex-next> Vai avanti </div>
+      <div> &nbsp; </div>
+      <div data-stex-prev> Vai indietro </div>
+      <div> &nbsp; </div>
+      <div data-stex-goto='2'> Vai a 2 </div>
+    </div>
+  </body>
+</html>
