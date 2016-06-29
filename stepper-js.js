@@ -18,73 +18,123 @@ function Step(name, func) {
 }
 
 // StexObject
-function StexObject(name, stepTriggers, domElement) {
+function StexObject(name, stepTriggers, domElement, reInitFunction) {
+    // Stepper's Name
     this.name = name;
+    // Stepper's triggers
     this.stepTriggers  = stepTriggers;
-    this.domElement    = domElement;
-    this.stepCounter   = 0;
-    this.steps         = [];
-    this.lastDirection = null;
+    // Stepper element in dom
+    this.domElement     = domElement;
+    this.stepCounter    = 0;
+    this.steps          = [];
+    this.lastDirection  = null;
+    this.defaultTrigger = 'click';
+
+    this.init = reInitFunction;
 
     // Add Step
     this.addStep = function(name, func) {
         this.steps.push( {name: name, func: func} );
+        return this;
     }
 
-    thisObj = this;
+    /***
+    ** Binding method
+    ***/
+    this.bindTrigger = function(stex, target) {
+        $StexJS(target).bind(stex.trigger, function(e) {
+            // Event target
+            var target = e.target;
+            // Call nextStep
+            if ($StexJS(target).data('stex-next') != undefined) {
+                stex.nextStep(target);
+            }
+            // Call prevStep
+            else if ($StexJS(target).data('stex-prev') != undefined) {
+                stex.prevStep(target);
+            }
+            // Call gotoStep
+            else if ($StexJS(target).data('stex-goto') != undefined) {
+                var goto = $StexJS(target).data('stex-goto');
+                stex.gotoStep(target, goto);
+            }
+        });
+    }
+
+    /***
+     ** Go to next step
+     ***/
+    this.nextStep = function(target) {
+        // If the stepcounter reach the number of steps added restart from first
+        if (this.stepCounter == this.steps.length) {
+            // Execute the step before increment of stepCounter
+            this.stepCounter = 0;
+            this.steps[this.stepCounter].func(target);
+            this.lastDirection = "next";
+        } else {
+
+            // Execute the step before increment of stepCounter
+            if (this.stepCounter == 0 && (this.lastDirection != null)) {
+                this.steps[this.stepCounter++].func(target);
+            } else {
+                this.steps[this.stepCounter].func(target);
+                this.stepCounter++;
+            }
+
+            this.lastDirection = "next";
+        }
+    }
+
+    /***
+     ** Go to previous step
+     ***/
+    this.prevStep = function(target) {
+        // If the stepcounter reach 0 restart from last
+        if (this.stepCounter == 0) {
+            // Execute the step before increment of stepCounter
+            this.stepCounter = this.steps.length - 1;
+            this.steps[this.stepCounter].func(target);
+            this.lastDirection = "prev";
+        } else {
+            // Execute the step before increment of stepCounter
+            if (this.lastDirection == "next") {
+                // if (this.stepCounter == this.steps.length) {
+                //
+                // }
+                if (this.stepCounter == 1) {
+                    this.stepCounter = this.steps.length;
+                } else {
+                    this.stepCounter -= 1;
+                }
+            }
+            this.steps[this.stepCounter].func(target);
+            this.lastDirection = "prev";
+        }
+    }
+
+    /***
+     ** Go to specified number step
+     ***/
+    this.gotoStep = function(target, step_num) {
+        var goto   = step_num;
+        this.stepCounter = goto;
+        this.steps[this.stepCounter].func(target);
+    }
+
+    // Instantiates this in another variable before it will be rewritten
+    var thisObj = this;
 
     $StexJS(stepTriggers).each(function(idx, el) {
         var trigger = '';
         if ($StexJS(el).data('stex-trigger') == undefined) {
-            trigger = 'click';
+            thisObj.trigger = thisObj.defaultTrigger;
         } else {
-            trigger = $StexJS(el).data('stex-trigger');
+            thisObj.trigger = $StexJS(el).data('stex-trigger');
         }
-        $StexJS(el).bind(trigger, function(e) {
-            // Event target
-            var target = e.target;
 
-            if ($StexJS(target).data('stex-next') != undefined) {
-                // If the stepcounter reach the number of steps added restart from first
-                if (thisObj.stepCounter == (thisObj.steps.length - 1)) {
-                    // Execute the step before increment of stepCounter
-                    thisObj.steps[thisObj.stepCounter].func(target);
-                    thisObj.stepCounter = 0;
-                    thisObj.lastDirection = "next";
-                } else {
-                    if (thisObj.lastDirection == "prev")
-                        ++thisObj.stepCounter;
+        // Bind the step logic to the element
+        thisObj.bindTrigger(thisObj, el);
 
-                    // Execute the step before increment of stepCounter
-                    thisObj.steps[thisObj.stepCounter].func(target);
-                    thisObj.stepCounter++;
-                    thisObj.lastDirection = "next";
-                }
-            } else if ($StexJS(target).data('stex-prev') != undefined) {
-                // If the stepcounter reach 0 restart from last
-                if (thisObj.stepCounter == 0) {
-                    // Execute the step before increment of stepCounter
-                    thisObj.stepCounter = thisObj.steps.length - 1;
-                    thisObj.steps[thisObj.stepCounter].func(target);
-                    thisObj.lastDirection = "prev";
-                } else {
-                    // Execute the step before increment of stepCounter
-                    if (thisObj.lastDirection == "next")
-                        if (thisObj.stepCounter == 1 ) {
-                            thisObj.stepCounter = thisObj.steps.length;
-                        } else {
-                            --thisObj.stepCounter;
-                        }
-                    thisObj.steps[--thisObj.stepCounter].func(target);
-                    thisObj.lastDirection = "prev";
-                }
-            } else if ($StexJS(target).data('stex-goto') != undefined) {
-                var goto = $StexJS(target).data('stex-goto');
-
-                thisObj.stepCounter = goto;
-                thisObj.steps[thisObj.stepCounter].func(target);
-            }
-        })
     });
 
     return this;
@@ -96,41 +146,51 @@ function Stex(dataStexName = false, trigger = false) {
     var stexs    = [];
     var allStexs = [];
 
-    // If constructor hasn't parameters initialize all stexs in DOM
-    if (!dataStexName && !trigger) {
-        // Initi all .stex instances in DOM
-        $StexJS('.stex').each(function(index, el) {
-            var stexName  = $StexJS(el).data('stex');
-            var stexStepTriggers = [];
-            // Get all stepper's steps triggers (prev, next, goto)
-            $StexJS(el).find('[data-stex-next],[data-stex-prev],[data-stex-goto]').each(function(idx, elem) {
-                $StexJS(elem).attr('data-stex-parent', stexName);
-                stexStepTriggers.push(elem);
-            });
-
-            // Create stex objects
-            stexs[stexName] = new StexObject(stexName, stexStepTriggers, el);
-
-            // Push into allStexs array
-            allStexs.push(thisStex[stexName]);
-        });
-
-        return allStexs;
-    }
-    // Else if the constructor has parameters, initialize specified stex in DOM
-    else {
-        // Specified stex to initialize
-        var stex       = $StexJS('[data-stex="' + dataStexName + '"]');
-        // Stex's name in data-stex attr
-        var stexName   = dataStexName;
-
-        var stexStepTriggers = [];
-
+    this.init = function() {
         // Get all stepper's steps triggers (prev, next, goto)
         $StexJS(stex).find('[data-stex-next],[data-stex-prev],[data-stex-goto]').each(function(idx, el) {
+            $StexJS(el).data('stex-added', true);
+            $StexJS(el).addClass('stex-step-' + idx, stexName);
             stexStepTriggers.push(el);
         });
 
-        return new StexObject(stexName, stexStepTriggers, stex);
+        return new StexObject(stexName, stexStepTriggers, stex, this.init);
     }
+
+    // If constructor hasn't parameters initialize all stexs in DOM
+    // if (!dataStexName && !trigger) {
+    //     // Initi all .stex instances in DOM
+    //     $StexJS('.stex').each(function(index, el) {
+    //         var stexName  = $StexJS(el).data('stex');
+    //         var stexStepTriggers = [];
+    //         // Get all stepper's steps triggers (prev, next, goto)
+    //         $StexJS(el).find('[data-stex-next],[data-stex-prev],[data-stex-goto]').each(function(idx, elem) {
+    //             $StexJS(elem).data('stex-added', true);
+    //             $StexJS(elem).addClass('stex-step-' + idx, stexName);
+    //             $StexJS(elem).attr('data-stex-parent', stexName);
+    //             stexStepTriggers.push(elem);
+    //         });
+    //
+    //         // Create stex objects
+    //         stexs[stexName] = new StexObject(stexName, stexStepTriggers, el);
+    //
+    //         // Push into allStexs array
+    //         allStexs.push(thisStex[stexName]);
+    //     });
+    //
+    //     return allStexs;
+    // }
+
+    // Else if the constructor has parameters, initialize specified stex in DOM
+    // else {
+    // Specified stex to initialize
+    var stex       = $StexJS('[data-stex="' + dataStexName + '"]');
+    // Stex's name in data-stex attr
+    var stexName   = dataStexName;
+
+    var stexStepTriggers = [];
+
+    // Get all stepper's steps triggers (prev, next, goto)
+    return this.init();
+    // }
 }
