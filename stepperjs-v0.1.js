@@ -197,7 +197,6 @@ function Stepper(name) {
         return e;
       });
     } else {
-      console.log(elements);
       var type    = elements.dataset['stexNext'] == undefined ? (elements.dataset['stexPrev'] != undefined ? 'prev' : (elements.dataset['stexGoto'] == undefined ? false : 'goto') ) : 'next';
       var trigger = elements.dataset['stexTrigger'] != undefined ? elements.dataset['stexTrigger'] : 'click' ;
 
