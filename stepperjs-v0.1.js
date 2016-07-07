@@ -125,7 +125,7 @@ function Stepper(name) {
         return oldThis.prev(e);
         break;
       case 'goto':
-        var gotoN = e.dataset['stexGoto'];
+        var gotoN = e.dataset['stepGoto'];
         return oldThis.goto(e, gotoN);
         break;
     }
@@ -135,8 +135,9 @@ function Stepper(name) {
     oldThis = this;
 
     Array.prototype.forEach.call(elements, function(e, i) {
-      var type    = e.dataset['stexNext'] == undefined ? (e.dataset['stexPrev'] != undefined ? 'prev' : (e.dataset['stexGoto'] == undefined ? false : 'goto') ) : 'next';
-      var trigger = e.dataset['stexTrigger'] != undefined ? e.dataset['stexTrigger'] : 'click' ;
+      console.log(e, i);
+      var type    = (e.dataset['stepNext'] == undefined) ? (e.dataset['stepPrev'] != undefined ? 'prev' : (e.dataset['stepGoto'] == undefined ? false : 'goto') ) : 'next';
+      var trigger = (e.dataset['stepTrigger'] != undefined) ? e.dataset['stepTrigger'] : 'click';
 
       if (!e.dataset.binded) {
         oldThis.originalNodes[i] = e.cloneNode(true);
@@ -146,7 +147,6 @@ function Stepper(name) {
         e.addEventListener(trigger, function (ev) {
           oldThis.handler(type, e);
         });
-
       }
     });
 
@@ -155,8 +155,8 @@ function Stepper(name) {
 
   this.unbindEvents = function(elements) {
     Array.prototype.forEach.call(elements, function(e, i) {
-      var type    = e.dataset['stexNext'] == undefined ? (e.dataset['stexPrev'] != undefined ? 'prev' : (e.dataset['stexGoto'] == undefined ? false : 'goto') ) : 'next';
-      var trigger = e.dataset['stexTrigger'] != undefined ? e.dataset['stexTrigger'] : 'click' ;
+      var type    = e.dataset['stepNext'] == undefined ? (e.dataset['stepPrev'] != undefined ? 'prev' : (e.dataset['stepGoto'] == undefined ? false : 'goto') ) : 'next';
+      var trigger = e.dataset['stepTrigger'] != undefined ? e.dataset['stepTrigger'] : 'click' ;
       if (oldThis.originalNodes[i] == undefined) {
         oldThis.originalNodes[i] = e;
       }
@@ -169,8 +169,9 @@ function Stepper(name) {
   /**
    * Rebinding function
    */
-  this.rebindEvents = function (elements) {
-    this.bindEvents(elements);
+  this.rebindEvents = function () {
+    this.tA = document.querySelectorAll('[data-step-next], [data-step-prev], [data-step-goto]');
+    this.bindEvents(this.tA);
 
     return this;
   }
@@ -182,8 +183,8 @@ function Stepper(name) {
 
     if (Array.isArray(elements)) {
       Array.prototype.forEach.call(elements, function(e, i) {
-        var type    = e.dataset['stexNext'] == undefined ? (e.dataset['stexPrev'] != undefined ? 'prev' : (e.dataset['stexGoto'] == undefined ? false : 'goto') ) : 'next';
-        var trigger = e.dataset['stexTrigger'] != undefined ? e.dataset['stexTrigger'] : 'click' ;
+        var type    = e.dataset['stepNext'] == undefined ? (e.dataset['stepPrev'] != undefined ? 'prev' : (e.dataset['stepGoto'] == undefined ? false : 'goto') ) : 'next';
+        var trigger = e.dataset['stepTrigger'] != undefined ? e.dataset['stepTrigger'] : 'click' ;
 
         if (!e.dataset.binded) {
           oldThis.originalNodes.push(e.cloneNode(true));
@@ -197,8 +198,8 @@ function Stepper(name) {
         return e;
       });
     } else {
-      var type    = elements.dataset['stexNext'] == undefined ? (elements.dataset['stexPrev'] != undefined ? 'prev' : (elements.dataset['stexGoto'] == undefined ? false : 'goto') ) : 'next';
-      var trigger = elements.dataset['stexTrigger'] != undefined ? elements.dataset['stexTrigger'] : 'click' ;
+      var type    = elements.dataset['stepNext'] == undefined ? (elements.dataset['stepPrev'] != undefined ? 'prev' : (elements.dataset['stepGoto'] == undefined ? false : 'goto') ) : 'next';
+      var trigger = elements.dataset['stepTrigger'] != undefined ? elements.dataset['stepTrigger'] : 'click' ;
 
       if (!elements.dataset.binded) {
         oldThis.originalNodes.push(elements.cloneNode(true));
@@ -216,7 +217,7 @@ function Stepper(name) {
   /**
    * Bind events to the in DOM triggerers
    */
-  this.tA = document.querySelectorAll('[data-stex-next], [data-stex-prev], [data-stex-goto]');
+  this.tA = document.querySelectorAll('[data-step-next], [data-step-prev], [data-step-goto]');
   this.bindEvents(this.tA);
 
   return this;

@@ -18,25 +18,24 @@
           .step('step4', function() { console.log('step4'); });
 
         var newNext = document.createElement('div');
-        newNext.dataset['stexNext'] = '';
+        newNext.dataset['stepNext'] = '';
         newNext.innerHTML = 'Avanti Ajax';
 
-        document.querySelector('[data-stex="myStepper"]').appendChild(newNext);
-        var allStexTriggers = document.querySelectorAll('[data-stex-next], [data-stex-prev], [data-stex-goto]');
+        document.querySelector('[data-step="myStepper"]').appendChild(newNext);
 
-        myStepper.rebindEvents('all', allStexTriggers);
-
+        var allStexTriggers = document.querySelectorAll('[data-step-next], [data-step-prev], [data-step-goto]');
+        console.log(allStexTriggers, 'aallStexTriggers');
+        myStepper.bindEvents(allStexTriggers);
       }
     </script>
   </head>
   <body>
-    <div data-stex="myStepper">
-      <!-- <div data-stex-next data-stex-trigger="hover"> Vai avanti </div> -->
-      <div data-stex-next> Vai avanti </div>
+    <div data-step="myStepper">
+      <div data-step-next> Vai avanti </div>
       <div> &nbsp; </div>
-      <div data-stex-prev> Vai indietro </div>
+      <div data-step-prev> Vai indietro </div>
       <div> &nbsp; </div>
-      <div data-stex-goto='2'> Vai a 2 </div>
+      <div data-step-goto='2'> Vai a 2 </div>
     </div>
   </body>
 </html>
