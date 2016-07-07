@@ -1,7 +1,3 @@
-function capitalise(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
-}
-
 function Step(name, func, number) {
   this.name = name;
   this.func = func;
